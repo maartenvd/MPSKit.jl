@@ -1,6 +1,7 @@
 module MPSKit
     using TensorKit,KrylovKit,Parameters, Base.Threads,OptimKit, FastClosures
 
+    import TensorOperations as TO;
     using LinearAlgebra:diag,Diagonal;
     import LinearAlgebra
 

@@ -103,3 +103,22 @@ function _embedders(spaces)
 
     maps
 end
+
+macro plansor(ex::Expr)
+    return esc(plansor_parser(ex))
+end
+
+function plansor_parser(ex)
+    t = first(TO.getinputtensorobjects(ex));
+
+    default = TO.defaultparser(ex);
+    planar = planar_parser(ex);
+
+    quote
+        if BraidingStyle(sectortype($t)) isa Bosonic
+            $(default)
+        else
+            $(planar)
+        end
+    end
+end
