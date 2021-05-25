@@ -116,7 +116,7 @@ function mixed_fixpoints(above::MPSMultiline,mpo::MPOMultiline,below::MPSMultili
                 $lefties[cr,loc] = transfer_left($lefties[cr,loc-1],$mpo[cr,loc-1],$above.AL[cr,loc-1],$below.AL[cr+1,loc-1])
             end
 
-            renormfact::eltype(T) = @tensor Ls[1][1,2,3]*above.CR[cr,0][3,4]*Rs[1][4,2,5]*conj(below.CR[cr+1,0][1,5])
+            @plansor renormfact[] := (Ls[1])[1 2;3]*(above.CR[cr,0])[3;4]*(Rs[1])[4 2;5]*conj((below.CR[cr+1,0])[1;5])
 
             $righties[cr,end] = Rs[1]/sqrt(renormfact);
             $lefties[cr,1] /=sqrt(renormfact);
@@ -124,7 +124,7 @@ function mixed_fixpoints(above::MPSMultiline,mpo::MPOMultiline,below::MPSMultili
             for loc in numcols-1:-1:1
                 $righties[cr,loc] = transfer_right($righties[cr,loc+1],$mpo[cr,loc+1],$above.AR[cr,loc+1],$below.AR[cr+1,loc+1])
 
-                renormfact = @tensor lefties[cr,loc+1][1,2,3]*above.CR[cr,loc][3,4]*righties[cr,loc][4,2,5]*conj(below.CR[cr+1,loc][1,5])
+                @plansor renormfact[] := lefties[cr,loc+1][1 2;3]*above.CR[cr,loc][3;4]*righties[cr,loc][4 2;5]*conj(below.CR[cr+1,loc][1;5])
                 $righties[cr,loc]/=sqrt(renormfact)
                 $lefties[cr,loc+1]/=sqrt(renormfact)
             end
