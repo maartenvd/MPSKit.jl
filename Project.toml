@@ -13,10 +13,10 @@ TensorKit = "07d1fe3e-3e46-537d-9eac-e9e13d0d4cec"
 TensorKitManifolds = "11fa318c-39cb-4a83-b1ed-cdc7ba1e3684"
 
 [compat]
-KrylovKit = "0.4 - 0.5.2"
+FastClosures = "0.3"
+KrylovKit = "0.4 - 0.5.2, 0.5"
 OptimKit = "0.3.1"
 Parameters = "0.12.1"
 TensorKit = "0.9"
 TensorKitManifolds = "0.5,0.6"
 julia = "1.4 - 1.7"
-FastClosures = "0.3"
