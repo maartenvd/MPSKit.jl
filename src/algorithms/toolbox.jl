@@ -1,5 +1,5 @@
 "calculates the entropy of a given state"
-entropy(state::InfiniteMPS) = [sum([-j^2*2*log(j) for j in entanglement_spectrum(state,i)]) for i in 1:length(state)]
+entropy(state::InfiniteMPS) = [tr(c*log(c)) for c in state.CR]
 
 "
 given a thermal state, you can map it to an mps by fusing the physical legs together
