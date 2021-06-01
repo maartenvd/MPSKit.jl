@@ -6,18 +6,18 @@
 function ac_prime(x::MPSTensor,ham::MPOHamSlice,leftenv,rightenv)
     toret = zero(x)
     for (i,j) in opkeys(ham)
-        @tensor toret[-1,-2,-3]+=leftenv[i][-1,5,4]*x[4,2,1]*ham[i,j][5,-2,3,2]*rightenv[j][1,3,-3]
+        @tensor toret[-1 -2;-3]+=leftenv[i][-1 5;4]*x[4 2;1]*ham[i,j][5 -2 ;2 3]*rightenv[j][1 3;-3]
     end
     for (i,j) in scalkeys(ham)
         scal = ham.Os[i,j];
-        @tensor toret[-1,-2,-3]+=leftenv[i][-1,5,4]*(scal*x)[4,-2,1]*rightenv[j][1,5,-3]
+        @tensor toret[-1 -2;-3]+=leftenv[i][-1 5;4]*(scal*x)[4 -2;1]*rightenv[j][1 5;-3]
     end
 
     return toret
 end
 
 function ac_prime(x::MPSTensor,opp::MPOTensor,leftenv,rightenv)
-    @tensor toret[-1 -2;-3]:=leftenv[-1,2,1]*x[1,3,4]*opp[2,-2,5,3]*rightenv[4,5,-3]
+    @plansor toret[-1 -2;-3]:=leftenv[-1 2;1]*x[1 3;4]*opp[2 -2;3 5]*rightenv[4 5;-3]
 end
 
 """
@@ -63,7 +63,7 @@ function c_prime(x,leftenv::AbstractVector,rightenv::AbstractVector)
 end
 
 function c_prime(x, leftenv::MPSTensor,rightenv::MPSTensor)
-    @tensor toret[-1;-2] := leftenv[-1,3,1]*x[1,2]*rightenv[2,3,-2]
+    @plansor toret[-1;-2] := leftenv[-1 3;1]*x[1;2]*rightenv[2 3;-2]
 end
 
 #not breaking everything immediatly
