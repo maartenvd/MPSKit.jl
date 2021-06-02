@@ -10,12 +10,18 @@ transfer_left(v::MPSBondTensor,A::MPOTensor,B::MPOTensor) = @plansor t[-1;-2] :=
 transfer_right(v::MPSBondTensor,A::MPOTensor,B::MPOTensor) = @plansor t[-1;-2] := A[-1 3;4 1]*conj(B[-2 3;4 2])*v[1;2]
 
 #transfer, but there are utility legs in the middle that are passed through
+#=
 transfer_left(v::AbstractTensorMap{S,N1,N2},A::GenericMPSTensor{S,N},Ab::GenericMPSTensor{S,N}=A) where {S,N1,N2,N} =
     _permute_as(Ab'*permute(_permute_front(v)*_permute_tail(A),tuple(1,ntuple(x->N1+N2-1+x,N-1)...),tuple(ntuple(x->x+1,N1+N2-2)...,N1+N2+N-1)),v)
 
 transfer_right(v::AbstractTensorMap{S,N1,N2},A::GenericMPSTensor{S,N},Ab::GenericMPSTensor{S,N}=A) where {S,N1,N2,N} =
     _permute_as(permute(A*_permute_tail(v),tuple(1,ntuple(x->N+x,N1+N2-2)...),tuple(ntuple(x->x+1,N-1)...,N1+N2+N-1))*_permute_tail(Ab)',v)
+=#
 
+# "excitation leg"
+function transfer_left(v::AbstractTensorMap{S,1,2},A::GenericMPSTensor{S,2},Ab::GenericMPSTensor{S,2} = A) where {S}
+    @plansor t[-1;-2 -3] := v[1;-2 2]*A[2 3;-3]*conj(Ab[1 3;-1])
+end
 #mpo transfer
 transfer_left(v::MPSTensor,O::MPOTensor,A::MPSTensor,Ab::MPSTensor) = @plansor v[-1 -2;-3] := v[4 2;1]*A[1 3;-3]*O[2 5;3 -2]*conj(Ab[4 5;-1])
 transfer_right(v::MPSTensor,O::MPOTensor,A::MPSTensor,Ab::MPSTensor) = @plansor v[-1 -2;-3] := A[-1 4;5]*O[-2 2;4 3]*conj(Ab[-3 2;1])*v[5 3;1]

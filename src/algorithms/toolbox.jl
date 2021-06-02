@@ -1,5 +1,5 @@
 "calculates the entropy of a given state"
-entropy(state::InfiniteMPS) = [tr(c*log(c)) for c in state.CR]
+entropy(state::InfiniteMPS) = [-tr(c*log(c)) for c in state.CR]
 
 "
 given a thermal state, you can map it to an mps by fusing the physical legs together
@@ -43,9 +43,9 @@ calc_galerkin(state::MPSMultiline, envs::MixPerMPOInfEnv)::Float64 = maximum([no
 Calculates the (partial) transfer spectrum
 "
 function transfer_spectrum(above::InfiniteMPS;below=above,tol=Defaults.tol,num_vals = 20,sector=first(sectors(oneunit(virtualspace(above,1)))))
-    init = TensorMap(rand, eltype(eltype(above)), virtualspace(below,0)*ℂ[sector => 1],virtualspace(above,0))
+    init = TensorMap(rand, eltype(eltype(above)), virtualspace(below,0),ℂ[sector => 1]'*virtualspace(above,0))
 
-    num_vals = min(dim(virtualspace(above,0)*virtualspace(below,0)),num_vals); # we can ask at most this many values
+    num_vals = min(dim(init),num_vals); # we can ask at most this many values
 
     eigenvals, eigenvecs,convhist = eigsolve(x->transfer_left(x, above.AL, below.AL) , init, num_vals, :LM, tol=tol)
     convhist.converged < num_vals && @warn "correlation length failed to converge $(convhist.normres)"
