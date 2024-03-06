@@ -30,15 +30,29 @@ end
 #     return MultipleEnvironments(H, broadcast(o -> environments(state, o), H.opps))
 # end;
 
-function environments(st::WindowMPS,
-                      H::LazySum;
-                      lenvs=environments(st.left_gs, H),
-                      renvs=environments(st.right_gs, H))
-    return MultipleEnvironments(H,
-                                map((op, sublenv, subrenv) -> environments(st, op;
-                                                                           lenvs=sublenv,
-                                                                           renvs=subrenv),
-                                    H.ops, lenvs, renvs))
+#===========================================================================================
+Utility
+===========================================================================================#
+function Base.getproperty(ca::MultipleEnvironments{<:LazySum,<:WindowEnv}, sym::Symbol)
+    if sym === :left || sym === :middle || sym === :right
+        #extract the left/right parts
+        return MultipleEnvironments(getproperty(ca.opp, sym),
+                                    map(x -> getproperty(x, sym), ca))
+    else
+        return getfield(ca, sym)
+    end
+end
+
+function Base.getproperty(envs::MultipleEnvironments, prop::Symbol)
+    if prop === :solver
+        return map(env -> env.solver, envs)
+    else
+        return getfield(envs, prop)
+    end
+end
+
+function finenv(ca::MultipleEnvironments{<:LazySum,<:WindowEnv}, ψ::WindowMPS)
+    return MultipleEnvironments(ca.opp.middle, map(x -> finenv(x, ψ), ca))
 end
 
 # we need to define how to recalculate
@@ -50,13 +64,4 @@ function recalculate!(env::MultipleEnvironments, args...; kwargs...)
         recalculate!(subenv, args...; kwargs...)
     end
     return env
-end
-
-#maybe this can be used to provide compatibility with existing code?
-function Base.getproperty(envs::MultipleEnvironments, prop::Symbol)
-    if prop === :solver
-        return map(env -> env.solver, envs)
-    else
-        return getfield(envs, prop)
-    end
 end

@@ -58,34 +58,40 @@ function timestep(Ψ::InfiniteMPS, H, t::Number, dt::Number, alg::TDVP,
     return newΨ, envs
 end
 
-function timestep!(Ψ::AbstractFiniteMPS, H, t::Number, dt::Number, alg::TDVP,
-                   envs::Union{Cache,MultipleEnvironments}=environments(Ψ, H))
+function ltr_sweep!(Ψ::AbstractFiniteMPS, H, t::Number, dt::Number, alg::TDVP,
+                    envs::Union{Cache,MultipleEnvironments}=environments(Ψ, H))
 
     # sweep left to right
     for i in 1:(length(Ψ) - 1)
         h_ac = ∂∂AC(i, Ψ, H, envs)
-        Ψ.AC[i] = integrate(h_ac, Ψ.AC[i], t, dt / 2, alg.integrator)
+        Ψ.AC[i] = integrate(h_ac, Ψ.AC[i], t, dt, alg.integrator)
 
         h_c = ∂∂C(i, Ψ, H, envs)
-        Ψ.CR[i] = integrate(h_c, Ψ.CR[i], t, -dt / 2, alg.integrator)
+        Ψ.CR[i] = integrate(h_c, Ψ.CR[i], t, -dt, alg.integrator)
     end
 
     # edge case
     h_ac = ∂∂AC(length(Ψ), Ψ, H, envs)
-    Ψ.AC[end] = integrate(h_ac, Ψ.AC[end], t, dt / 2, alg.integrator)
+    Ψ.AC[end] = integrate(h_ac, Ψ.AC[end], t, dt, alg.integrator)
+
+    return Ψ, envs
+end
+
+function rtl_sweep!(Ψ::AbstractFiniteMPS, H, t::Number, dt::Number, alg::TDVP,
+                    envs::Union{Cache,MultipleEnvironments}=environments(Ψ, H))
 
     # sweep right to left
     for i in length(Ψ):-1:2
         h_ac = ∂∂AC(i, Ψ, H, envs)
-        Ψ.AC[i] = integrate(h_ac, Ψ.AC[i], t + dt / 2, dt / 2, alg.integrator)
+        Ψ.AC[i] = integrate(h_ac, Ψ.AC[i], t, dt, alg.integrator)
 
         h_c = ∂∂C(i - 1, Ψ, H, envs)
-        Ψ.CR[i - 1] = integrate(h_c, Ψ.CR[i - 1], t + dt / 2, -dt / 2, alg.integrator)
+        Ψ.CR[i - 1] = integrate(h_c, Ψ.CR[i - 1], t, -dt, alg.integrator)
     end
 
     # edge case
     h_ac = ∂∂AC(1, Ψ, H, envs)
-    Ψ.AC[1] = integrate(h_ac, Ψ.AC[1], t + dt / 2, dt / 2, alg.integrator)
+    Ψ.AC[1] = integrate(h_ac, Ψ.AC[1], t + dt, dt, alg.integrator)
 
     return Ψ, envs
 end
@@ -112,8 +118,8 @@ algorithm for time evolution.
     finalize::F = Defaults._finalize
 end
 
-function timestep!(Ψ::AbstractFiniteMPS, H, t::Number, dt::Number, alg::TDVP2,
-                   envs=environments(Ψ, H))
+function ltr_sweep!(Ψ::AbstractFiniteMPS, H, t::Number, dt::Number, alg::TDVP2,
+                    envs=environments(Ψ, H))
 
     # sweep left to right
     for i in 1:(length(Ψ) - 1)
@@ -130,6 +136,12 @@ function timestep!(Ψ::AbstractFiniteMPS, H, t::Number, dt::Number, alg::TDVP2,
                                     alg.integrator)
         end
     end
+
+    return Ψ, envs
+end
+
+function rtl_sweep!(Ψ::AbstractFiniteMPS, H, t::Number, dt::Number, alg::TDVP2,
+                    envs=environments(Ψ, H))
 
     # sweep right to left
     for i in length(Ψ):-1:2
@@ -148,10 +160,4 @@ function timestep!(Ψ::AbstractFiniteMPS, H, t::Number, dt::Number, alg::TDVP2,
     end
 
     return Ψ, envs
-end
-
-#copying version
-function timestep(Ψ::AbstractFiniteMPS, H, time::Number, timestep::Number,
-                  alg::Union{TDVP,TDVP2}, envs=environments(Ψ, H); kwargs...)
-    return timestep!(copy(Ψ), H, time, timestep, alg, envs; kwargs...)
 end

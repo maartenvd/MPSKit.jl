@@ -10,8 +10,8 @@ end
 
 function Base.getindex(v::ALView{<:WindowMPS,E}, i::Int)::E where {E}
     i <= length(v.parent) || throw(ArgumentError("out of bounds"))
-    i < 1 && return v.parent.left_gs.AL[i]
-    return ALView(v.parent.window)[i]
+    i < 1 && return v.parent.left.AL[i]
+    return ALView(v.parent.middle)[i]
 end
 
 Base.getindex(v::ALView{<:Multiline}, i::Int, j::Int) = v.parent[i].AL[j]
@@ -32,8 +32,8 @@ end
 
 function Base.getindex(v::ARView{<:WindowMPS,E}, i::Int)::E where {E}
     i >= 1 || throw(ArgumentError("out of bounds"))
-    i > length(v.parent) && return v.parent.right_gs.AR[i]
-    return ARView(v.parent.window)[i]
+    i > length(v.parent) && return v.parent.right.AR[i]
+    return ARView(v.parent.middle)[i]
 end
 
 Base.getindex(v::ARView{<:Multiline}, i::Int, j::Int) = v.parent[i].AR[j]
@@ -78,9 +78,9 @@ function Base.setindex!(v::CRView{<:FiniteMPS}, vec, i::Int)
     return setindex!(v.parent.CLs, vec, i + 1)
 end
 
-Base.getindex(v::CRView{<:WindowMPS}, i::Int) = CRView(v.parent.window)[i]
+Base.getindex(v::CRView{<:WindowMPS}, i::Int) = CRView(v.parent.middle)[i]
 function Base.setindex!(v::CRView{<:WindowMPS}, vec, i::Int)
-    return setindex!(CRView(v.parent.window), vec, i)
+    return setindex!(CRView(v.parent.middle), vec, i)
 end
 Base.getindex(v::CRView{<:Multiline}, i::Int, j::Int) = v.parent[i].CR[j]
 function Base.setindex!(v::CRView{<:Multiline}, vec, i::Int, j::Int)
@@ -144,10 +144,10 @@ end
 
 function Base.getindex(v::ACView{<:WindowMPS,E}, i::Int)::E where {E}
     (i >= 1 && i <= length(v.parent)) || throw(ArgumentError("out of bounds"))
-    return ACView(v.parent.window)[i]
+    return ACView(v.parent.middle)[i]
 end
 function Base.setindex!(v::ACView{<:WindowMPS}, vec, i::Int)
-    return setindex!(ACView(v.parent.window), vec, i)
+    return setindex!(ACView(v.parent.middle), vec, i)
 end
 
 Base.getindex(v::ACView{<:Multiline}, i::Int, j::Int) = v.parent[i].AC[j]
