@@ -25,7 +25,7 @@ function find_groundstate(ost::InfiniteMPS, H, alg::IDMRG1, oenvs=environments(o
     log = IterLog("IDMRG")
 
     LoggingExtras.withlevel(; alg.verbosity) do
-        @infov 2 loginit!(log, ϵ, sum(expectation_value(ψ, H, envs)))
+        @infov 2 loginit!(log, ϵ, sum(expectation_value(ψ, H)))
         for iter in 1:(alg.maxiter)
             alg_eigsolve = updatetol(alg.eigalg, iter, ϵ)
             C_current = ψ.CR[0]
@@ -56,18 +56,18 @@ function find_groundstate(ost::InfiniteMPS, H, alg::IDMRG1, oenvs=environments(o
             ϵ = norm(C_current - ψ.CR[0])
 
             if ϵ < alg.tol
-                @infov 2 logfinish!(log, iter, ϵ, sum(expectation_value(ψ, H, envs)))
+                @infov 2 logfinish!(log, iter, ϵ, sum(expectation_value(ψ, H)))
                 break
             end
             if iter == alg.maxiter
-                @warnv 1 logcancel!(log, iter, ϵ, sum(expectation_value(ψ, H, envs)))
+                @warnv 1 logcancel!(log, iter, ϵ, sum(expectation_value(ψ, H)))
             else
-                @infov 3 logiter!(log, iter, ϵ, sum(expectation_value(ψ, H, envs)))
+                @infov 3 logiter!(log, iter, ϵ, sum(expectation_value(ψ, H)))
             end
         end
     end
 
-    nst = InfiniteMPS(ψ.AR[1:end]; tol=alg.tol_gauge)
+    nst = InfiniteMPS(ψ.AR[1:end]; tol=alg.tol_gauge, order=:RL)
     nenvs = environments(nst, H; solver=oenvs.solver)
     return nst, nenvs, ϵ
 end

@@ -41,7 +41,7 @@ function changebonds(ψ::InfiniteMPS, alg::SvdCut)
         copied[i + 1] = _transpose_front(U' * _transpose_tail(copied[i + 1]))
     end
 
-    return normalize!(InfiniteMPS(copied, complex(ncr)))
+    return InfiniteMPS(uniform_gauge(copied, complex(ncr))...)
 end
 
 function changebonds(ψ, H, alg::SvdCut, envs=environments(ψ, H))

@@ -13,7 +13,7 @@
 Approximate the leading eigenvector for opp.
 """
 function leading_boundary(ψ::InfiniteMPS, H, alg, envs=environments(ψ, H))
-    (st, pr, de) = leading_boundary(convert(MPSMultiline, ψ), Multiline([H]), alg, envs)
+    st, pr, de = leading_boundary(convert(MPSMultiline, ψ), Multiline([H]), alg, envs)
     return convert(InfiniteMPS, st), pr, de
 end
 
@@ -58,8 +58,8 @@ function leading_boundary(ψ::MPSMultiline, H, alg::VUMPS, envs=environments(ψ,
             end
 
             for row in 1:size(ψ, 1), col in 1:size(ψ, 2)
-                QAc, _ = leftorth!(temp_ACs[row, col]; alg=TensorKit.QRpos())
-                Qc, _ = leftorth!(temp_Cs[row, col]; alg=TensorKit.QRpos())
+                QAc, _ = leftorth!(temp_ACs[row, col]; alg=QRpos())
+                Qc, _ = leftorth!(temp_Cs[row, col]; alg=QRpos())
                 temp_ACs[row, col] = QAc * adjoint(Qc)
             end
 

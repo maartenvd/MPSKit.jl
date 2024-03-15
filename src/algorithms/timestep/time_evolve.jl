@@ -18,8 +18,8 @@ for (timestep, time_evolve) in zip((:timestep, :timestep!), (:time_evolve, :time
     @eval function $time_evolve(ψ, H, t_span::AbstractVector{<:Number}, alg,
                                 envs=environments(ψ, H);
                                 verbosity::Int=0)
-        log = IterLog("TDVP")
-        LoggingExtras.withlevel(; verbosity) do
+        log = IterLog(string(nameof(typeof(alg))))
+        LoggingExtras.withlevel(; alg.verbosity) do
             @infov 2 loginit!(log, 0, t)
             for iter in 1:(length(t_span) - 1)
                 t = t_span[iter]

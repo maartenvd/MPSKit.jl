@@ -38,7 +38,7 @@ const eigsolver = Arnoldi(; tol, maxiter, eager=true)
 function alg_gauge(; tol=tolgauge, maxiter=maxiter,
                    dynamic_tols=dynamic_tols, tol_min=tol_min, tol_max=tol_max,
                    tol_factor=gauge_tolfactor)
-    alg = (; tol, maxiter)
+    alg = UniformGauging(; tol, maxiter)
     return dynamic_tols ? DynamicTol(alg, tol, tol_max, tol_factor) : alg
 end
 

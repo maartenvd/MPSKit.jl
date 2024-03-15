@@ -164,4 +164,3 @@ plot!(p, ξ -> f(ξ) / 6; label="fit")
 ---
 
 *This page was generated using [Literate.jl](https://github.com/fredrikekre/Literate.jl).*
-

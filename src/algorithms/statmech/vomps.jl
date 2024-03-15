@@ -61,8 +61,8 @@ function leading_boundary(ψ::MPSMultiline, O::MPOMultiline, alg::VOMPS,
             end
 
             for row in 1:size(ψ, 1), col in 1:size(ψ, 2)
-                QAc, _ = leftorth!(temp_ACs[row, col]; alg=TensorKit.QRpos())
-                Qc, _ = leftorth!(temp_Cs[row, col]; alg=TensorKit.QRpos())
+                QAc, _ = leftorth!(temp_ACs[row, col]; alg=QRpos())
+                Qc, _ = leftorth!(temp_Cs[row, col]; alg=QRpos())
                 temp_ACs[row, col] = QAc * adjoint(Qc)
             end
 

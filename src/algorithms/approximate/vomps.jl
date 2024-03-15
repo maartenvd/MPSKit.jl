@@ -42,7 +42,7 @@ function approximate(ψ::MPSMultiline, toapprox::Tuple{<:MPOMultiline,<:MPSMulti
             alg_environments = updatetol(alg.alg_environments, iter, ϵ)
             recalculate!(envs, ψ; alg_environments.tol)
 
-            ψ, envs = alg.finalize(iter, ψ, toapprox, envs)::Tuple{typeof(ψ),typeof(envs)}
+            ψ, envs = alg.finalize(iter, ψ, toapprox, envs)::typeof((ψ, envs))
 
             ϵ = calc_galerkin(ψ, envs)
 

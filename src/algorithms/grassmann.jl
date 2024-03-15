@@ -152,18 +152,23 @@ end
 Retract a left-canonical infinite MPS along Grassmann tangent `g` by distance `alpha`.
 """
 function retract(x::ManifoldPoint{<:InfiniteMPS}, g, alpha)
-    state = x.state
+    ψ = x.state
     envs = x.envs
-    nal = similar(state.AL)
-    h = similar(g)  # The tangent at the end-point
-    for i in 1:length(g)
-        (nal[i], th) = Grassmann.retract(state.AL[i], g[i].Pg, alpha)
+    ψ′ = copy(ψ)
+    h = similar(g) # The tangent at the end-point
+    for i in eachindex(g)
+        ψ′.AC[i], th = Grassmann.retract(ψ.AL[i], g[i].Pg, alpha)
         h[i] = PrecGrad(th)
     end
 
-    nstate = InfiniteMPS(nal, state.CR[end])
+    # important to do it like this because Grassmann retract checks if base point is the same
+    # and `uniform_gauge()` creates new AL (I think?)
+    gaugefix!(ψ′; order=:LR) # needs to be this order for efficiency
 
-    newpoint = ManifoldPoint(nstate, envs)
+    # AR, CR = uniform_rightgauge(AL, ψ.CR[end])
+    # ψ′ = InfiniteMPS(AL, AR, CR)
+
+    newpoint = ManifoldPoint(ψ′, envs)
 
     return newpoint, h
 end

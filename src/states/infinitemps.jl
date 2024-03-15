@@ -22,11 +22,11 @@ By convention, we have that:
                 virtualspaces::Vector{<:Union{S, CompositeSpace{S}};
                 kwargs...) where {S<:ElementarySpace}
     InfiniteMPS(As::AbstractVector{<:GenericMPSTensor}; kwargs...)
-    InfiniteMPS(ALs::AbstractVector{<:GenericMPSTensor}, C₀::MPSBondTensor;
-                kwargs...)
+    InfiniteMPS(AL, AR, CR, [AC]) # expert
 
-Construct an MPS via a specification of physical and virtual spaces, or from a list of
-tensors `As`, or a list of left-gauged tensors `ALs`.
+Construct and gauge an MPS via a specification of physical and virtual spaces, or from a list of
+tensors `As`. Alternatively, just supply the fields `AL`, `AR`, `CR`, and `AC` directly, but
+beware that no gauging will be performed in that case.
 
 ### Arguments
 - `As::AbstractVector{<:GenericMPSTensor}`: vector of site tensors
@@ -107,6 +107,7 @@ end
 Constructors
 ===========================================================================================#
 
+# From tensors
 function InfiniteMPS(AL::AbstractVector{A}, AR::AbstractVector{A}, CR::AbstractVector{B},
                      AC::AbstractVector{A}=AL .* CR) where {A<:GenericMPSTensor,
                                                             B<:MPSBondTensor}
@@ -114,6 +115,22 @@ function InfiniteMPS(AL::AbstractVector{A}, AR::AbstractVector{A}, CR::AbstractV
                        convert(PeriodicVector{B}, CR), convert(PeriodicVector{A}, AC))
 end
 
+function InfiniteMPS(A::AbstractVector{TA}; order=:LR,
+                     kwargs...) where {TA<:GenericMPSTensor}
+    AC = PeriodicArray(A)
+    AL = similar.(AC)
+    AR = similar.(AL)
+
+    CR = map(AL) do a
+        return id(storagetype(a), dual(right_virtualspace(a)))
+    end
+
+    ψ = InfiniteMPS(AL, AR, CR, AC)
+    gaugefix!(ψ; order, kwargs...)
+    return ψ
+end
+
+# From spaces
 function InfiniteMPS(pspaces::AbstractVector{S}, Dspaces::AbstractVector{S};
                      kwargs...) where {S<:IndexSpace}
     return InfiniteMPS(MPSTensor.(pspaces, circshift(Dspaces, 1), Dspaces); kwargs...)
@@ -136,38 +153,6 @@ function InfiniteMPS(f, elt::Type{<:Number}, ds::AbstractVector{Int},
     return InfiniteMPS(f, elt, ComplexSpace.(ds), ComplexSpace.(Ds); kwargs...)
 end
 
-function InfiniteMPS(A::AbstractVector{<:GenericMPSTensor}; kwargs...)
-    AR = PeriodicArray(copy.(A)) # copy to avoid side effects
-    leftvspaces = circshift(_firstspace.(AR), -1)
-    rightvspaces = conj.(_lastspace.(AR))
-    isnothing(findfirst(leftvspaces .!= rightvspaces)) ||
-        throw(SpaceMismatch("incompatible virtual spaces $leftvspaces and $rightvspaces"))
-
-    CR = PeriodicArray(isomorphism.(storagetype(eltype(A)), leftvspaces, leftvspaces))
-    AL = similar.(AR)
-
-    uniform_leftorth!(AL, CR, AR; kwargs...)
-    uniform_rightorth!(AR, CR, AL; kwargs...)
-
-    return InfiniteMPS(AL, AR, CR)
-end
-
-function InfiniteMPS(AL::AbstractVector{<:GenericMPSTensor}, C₀::MPSBondTensor; kwargs...)
-    CR = PeriodicArray(fill(copy(C₀), length(AL)))
-    AL = PeriodicArray(copy.(AL))
-    AR = similar(AL)
-    uniform_rightorth!(AR, CR, AL; kwargs...)
-    return InfiniteMPS(AL, AR, CR)
-end
-
-function InfiniteMPS(C₀::MPSBondTensor, AR::AbstractVector{<:GenericMPSTensor}; kwargs...)
-    CR = PeriodicArray(fill(copy(C₀), length(AR)))
-    AR = PeriodicArray(copy.(AR))
-    AL = similar(AR)
-    uniform_leftorth!(AL, CR, AR; kwargs...)
-    return InfiniteMPS(AL, AR, CR)
-end
-
 #===========================================================================================
 Utility
 ===========================================================================================#
@@ -175,7 +160,7 @@ Utility
 Base.size(ψ::InfiniteMPS, args...) = size(ψ.AL, args...)
 Base.length(ψ::InfiniteMPS) = length(ψ.AL)
 Base.eltype(ψ::InfiniteMPS) = eltype(ψ.AL)
-Base.copy(ψ::InfiniteMPS) = InfiniteMPS(copy(ψ.AL), copy(ψ.AR), copy(ψ.CR), copy(ψ.AC))
+Base.copy(ψ::InfiniteMPS) = InfiniteMPS(copy.(ψ.AL), copy.(ψ.AR), copy.(ψ.CR), copy.(ψ.AC))
 function Base.repeat(ψ::InfiniteMPS, i::Int)
     return InfiniteMPS(repeat(ψ.AL, i), repeat(ψ.AR, i), repeat(ψ.CR, i), repeat(ψ.AC, i))
 end

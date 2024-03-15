@@ -21,7 +21,7 @@ https://arxiv.org/abs/1701.07035.
     finalize::F = Defaults._finalize
     verbosity::Int = Defaults.verbosity
 
-    alg_gauge = Defaults.alg_gauge()
+    alg_gauge = UniformGauging()
     alg_eigsolve = Defaults.alg_eigsolve()
     alg_environments = Defaults.alg_environments()
 end
@@ -29,7 +29,7 @@ end
 function find_groundstate(ψ::InfiniteMPS, H, alg::VUMPS, envs=environments(ψ, H))
     # initialization
     ϵ::Float64 = calc_galerkin(ψ, envs)
-    temp_ACs = similar.(ψ.AC)
+    temp_ACs = ψ.AC
     log = IterLog("VUMPS")
 
     LoggingExtras.withlevel(; alg.verbosity) do
@@ -52,12 +52,14 @@ function find_groundstate(ψ::InfiniteMPS, H, alg::VUMPS, envs=environments(ψ, 
             end
 
             alg_gauge = updatetol(alg.alg_gauge, iter, ϵ)
-            ψ = InfiniteMPS(temp_ACs, ψ.CR[end]; alg_gauge.tol, alg_gauge.maxiter)
+            copy!.(ψ.AR, temp_ACs)
+            ψ = gaugefix!(ψ, alg_gauge)
+            # ψ = InfiniteMPS(temp_ACs, ψ.CR[end]; alg_gauge.tol, alg_gauge.maxiter)
 
             alg_environments = updatetol(alg.alg_environments, iter, ϵ)
             recalculate!(envs, ψ; alg_environments.tol)
 
-            ψ, envs = alg.finalize(iter, ψ, H, envs)::Tuple{typeof(ψ),typeof(envs)}
+            ψ, envs = alg.finalize(iter, ψ, H, envs)::typeof((ψ, envs))
 
             ϵ = calc_galerkin(ψ, envs)
 

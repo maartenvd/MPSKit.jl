@@ -37,8 +37,10 @@ function loginit!(log::IterLog, error::Float64,
     log.iter = 0
     log.error = error
 
-    warnapproxreal(objective)
-    log.objective = real(objective)
+    if !isnothing(objective)
+        warnapproxreal(objective)
+        log.objective = real(objective)
+    end
 
     log.t_init = log.t_prev = log.t_last = Base.time()
     log.state = INIT
