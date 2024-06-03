@@ -1,5 +1,325 @@
 <!DOCTYPE html>
-<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Operators · MPSKit.jl</title><meta name="title" content="Operators · MPSKit.jl"/><meta property="og:title" content="Operators · MPSKit.jl"/><meta property="twitter:title" content="Operators · MPSKit.jl"/><meta name="description" content="Documentation for MPSKit.jl."/><meta property="og:description" content="Documentation for MPSKit.jl."/><meta property="twitter:description" content="Documentation for MPSKit.jl."/><script data-outdated-warner src="../../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../search_index.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><a class="docs-logo" href="../../"><img src="../../assets/logo.svg" alt="MPSKit.jl logo"/></a><div class="docs-package-name"><span class="docs-autofit"><a href="../../">MPSKit.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../../">Home</a></li><li><span class="tocitem">Manual</span><ul><li><a class="tocitem" href="../intro/">Prerequisites</a></li><li><a class="tocitem" href="../states/">States</a></li><li class="is-active"><a class="tocitem" href>Operators</a><ul class="internal"><li><a class="tocitem" href="#DenseMPO"><span>DenseMPO</span></a></li><li><a class="tocitem" href="#SparseMPO"><span>SparseMPO</span></a></li><li><a class="tocitem" href="#MPOHamiltonian"><span>MPOHamiltonian</span></a></li></ul></li><li><a class="tocitem" href="../algorithms/">Algorithms</a></li><li><a class="tocitem" href="../environments/">Environments</a></li><li><a class="tocitem" href="../parallelism/">Parallelism in julia</a></li></ul></li><li><a class="tocitem" href="../../examples/">Examples</a></li><li><a class="tocitem" href="../../lib/lib/">Library</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Manual</a></li><li class="is-active"><a href>Operators</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Operators</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/maartenvd/MPSKit.jl" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-navbar-link" href="https://github.com/maartenvd/MPSKit.jl/blob/master/docs/src/man/operators.md" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="um_operators"><a class="docs-heading-anchor" href="#um_operators">Operators</a><a id="um_operators-1"></a><a class="docs-heading-anchor-permalink" href="#um_operators" title="Permalink"></a></h1><h2 id="DenseMPO"><a class="docs-heading-anchor" href="#DenseMPO">DenseMPO</a><a id="DenseMPO-1"></a><a class="docs-heading-anchor-permalink" href="#DenseMPO" title="Permalink"></a></h2><p>This operator is used for statistical physics problems. It is simply a periodic array of mpo tensors.</p><p>Can be created using</p><pre><code class="language-julia hljs">DenseMPO(t::AbstractArray{T,1}) where T&lt;:MPOTensor</code></pre><h2 id="SparseMPO"><a class="docs-heading-anchor" href="#SparseMPO">SparseMPO</a><a id="SparseMPO-1"></a><a class="docs-heading-anchor-permalink" href="#SparseMPO" title="Permalink"></a></h2><p><code>SparseMPO</code> is similar to a <code>DenseMPO</code>, in that it again represents an mpo tensor, periodically repeated. However this type keeps track of all internal zero blocks, allowing for a more efficient representation of certain operators (such as time evolution operators and quantum hamiltonians). You can convert a sparse mpo to a densempo, but the converse does not hold.</p><p>Indexing a <code>SparseMPO</code> returns a <code>SparseMPOSlice</code> object, which has 3 fields</p><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="MPSKit.SparseMPOSlice" href="#MPSKit.SparseMPOSlice"><code>MPSKit.SparseMPOSlice</code></a> — <span class="docstring-category">Type</span></header><section><div><pre><code class="language-julia hljs">SparseMPOSlice{S,T,E} &lt;: AbstractArray{T,2}</code></pre><p>A view of a sparse MPO at a single position.</p><p><strong>Fields</strong></p><ul><li><code>Os::AbstractMatrix{Union{T,E}}</code>: matrix of operators.</li><li><code>domspaces::AbstractVector{S}</code>: list of left virtual spaces.</li><li><code>imspaces::AbstractVector{S}</code>: list of right virtual spaces.</li><li><code>pspace::S</code>: physical space.</li></ul></div><a class="docs-sourcelink" target="_blank" href="https://github.com/maartenvd/MPSKit.jl/blob/e472889b35cb4a5b5b846a9095501cf2ce87cdf9/src/operators/sparsempo/sparseslice.jl#L2-L12">source</a></section></article><p>When indexing a <code>SparseMPOSlice</code> at index <code>[j, k]</code> (or equivalently <code>SparseMPO[i][j, k]</code>), the code looks up the corresponding field in <code>Os[j, k]</code>. Either that element is a tensormap, in which case it gets returned. If it equals <code>zero(E)</code>, then we return a tensormap</p><pre><code class="language-julia hljs">domspaces[j] * pspace ← pspace * imspaces[k]</code></pre><p>with norm zero. If the element is a nonzero number, then implicitly we have the identity operator there (multiplied by that element).</p><p>The idea here is that you don&#39;t have to worry about the underlying structure, you can just index into a sparsempo as if it is a vector of matrices. Behind the scenes we then optimize certain contractions by using the sparsity structure.</p><p>SparseMPO are always assumed to be periodic in the first index (position). In this way, we can both represent periodic infinite mpos and place dependent finite mpos.</p><h2 id="MPOHamiltonian"><a class="docs-heading-anchor" href="#MPOHamiltonian">MPOHamiltonian</a><a id="MPOHamiltonian-1"></a><a class="docs-heading-anchor-permalink" href="#MPOHamiltonian" title="Permalink"></a></h2><p>We represent all quantum hamiltonians in their MPO form. This consists of an upper triangular (sparse) matrix of regular MPO tensors per site, resulting in an array with 3 dimensions. Thus, an <code>MPOHamiltonian</code> is just a wrapper around <code>SparseMPO</code>, but with some guarantees about its structure. As an example, the following bit of code constructs the Ising hamiltonian.</p><pre><code class="language-julia hljs">T = ComplexF64
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Operators · MPSKit.jl</title><meta name="title" content="Operators · MPSKit.jl"/><meta property="og:title" content="Operators · MPSKit.jl"/><meta property="twitter:title" content="Operators · MPSKit.jl"/><meta name="description" content="Documentation for MPSKit.jl."/><meta property="og:description" content="Documentation for MPSKit.jl."/><meta property="twitter:description" content="Documentation for MPSKit.jl."/><script data-outdated-warner src="../../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../search_index.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><a class="docs-logo" href="../../"><img src="../../assets/logo.svg" alt="MPSKit.jl logo"/></a><div class="docs-package-name"><span class="docs-autofit"><a href="../../">MPSKit.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../../">Home</a></li><li><span class="tocitem">Manual</span><ul><li><a class="tocitem" href="../intro/">Prerequisites</a></li><li><a class="tocitem" href="../states/">States</a></li><li class="is-active"><a class="tocitem" href>Operators</a><ul class="internal"><li><a class="tocitem" href="#FiniteMPO"><span>FiniteMPO</span></a></li><li><a class="tocitem" href="#MPOHamiltonian"><span>MPOHamiltonian</span></a></li><li><a class="tocitem" href="#DenseMPO"><span>DenseMPO</span></a></li><li><a class="tocitem" href="#SparseMPO"><span>SparseMPO</span></a></li><li><a class="tocitem" href="#MPOHamiltonian-2"><span>MPOHamiltonian</span></a></li></ul></li><li><a class="tocitem" href="../algorithms/">Algorithms</a></li><li><a class="tocitem" href="../environments/">Environments</a></li><li><a class="tocitem" href="../parallelism/">Parallelism in julia</a></li><li><a class="tocitem" href="../lattices/">Lattices</a></li></ul></li><li><a class="tocitem" href="../../examples/">Examples</a></li><li><a class="tocitem" href="../../lib/lib/">Library</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Manual</a></li><li class="is-active"><a href>Operators</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Operators</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/maartenvd/MPSKit.jl" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-navbar-link" href="https://github.com/maartenvd/MPSKit.jl/blob/master/docs/src/man/operators.md" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="um_operators"><a class="docs-heading-anchor" href="#um_operators">Operators</a><a id="um_operators-1"></a><a class="docs-heading-anchor-permalink" href="#um_operators" title="Permalink"></a></h1><p>In analogy to how we can define matrix product states as a contraction of local tensors, a similar construction exist for operators. To that end, a Matrix Product Operator (MPO) is nothing more than a collection of local <a href="@ref"><code>MPOTensor</code></a> objects, contracted along a line. Again, we can distinguish between finite and infinite operators, with the latter being represented by a periodic array of MPO tensors.</p><h2 id="FiniteMPO"><a class="docs-heading-anchor" href="#FiniteMPO">FiniteMPO</a><a id="FiniteMPO-1"></a><a class="docs-heading-anchor-permalink" href="#FiniteMPO" title="Permalink"></a></h2><p>Starting off with the simplest case, a basic finite MPO is a vector of <code>MPOTensor</code> objects. These objects can be created either directly from a vector of <code>MPOTensor</code>s, or starting from a dense operator (a subtype of <code>AbstractTensorMap{S,N,N}</code>), which is then decomposed into a product of local tensors.</p><p><img src="mpo.svg" alt/></p><pre><code class="language-julia hljs">S_x = TensorMap(ComplexF64[0 1; 1 0], ℂ^2 ← ℂ^2)
+S_z = TensorMap(ComplexF64[1 0; 0 -1], ℂ^2 ← ℂ^2)
+O_xzx = FiniteMPO(S_x ⊗ S_x ⊗ S_x);</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">FiniteMPO{TensorKit.TrivialTensorMap{TensorKit.ComplexSpace, 2, 2, Matrix{ComplexF64}}}(TensorKit.TrivialTensorMap{TensorKit.ComplexSpace, 2, 2, Matrix{ComplexF64}}[TensorMap((ℂ^1 ⊗ ℂ^2) ← (ℂ^2 ⊗ ℂ^1)):
+[:, :, 1, 1] =
+ 0.0 + 0.0im  -2.0 + 0.0im
+
+[:, :, 2, 1] =
+ -1.9999999999999993 + 0.0im  0.0 + 0.0im
+, TensorMap((ℂ^1 ⊗ ℂ^2) ← (ℂ^2 ⊗ ℂ^1)):
+[:, :, 1, 1] =
+ 0.0 + 0.0im  -0.7071067811865475 + 0.0im
+
+[:, :, 2, 1] =
+ -0.7071067811865472 + 0.0im  0.0 + 0.0im
+, TensorMap((ℂ^1 ⊗ ℂ^2) ← (ℂ^2 ⊗ ℂ^1)):
+[:, :, 1, 1] =
+ 0.0 + 0.0im  0.7071067811865475 + 0.0im
+
+[:, :, 2, 1] =
+ 0.7071067811865476 + 0.0im  0.0 + 0.0im
+])</code></pre><p>The individual tensors are accessible via regular indexing. Note that the tensors are internally converted to the <code>MPOTensor</code> objects, thus having 4 indices. In this specific case, the left- and right virtual spaces are trivial, but this is not a requirement.</p><pre><code class="language-julia hljs">O_xzx[1]</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">TensorMap((ℂ^1 ⊗ ℂ^2) ← (ℂ^2 ⊗ ℂ^1)):
+[:, :, 1, 1] =
+ 0.0 + 0.0im  -2.0 + 0.0im
+
+[:, :, 2, 1] =
+ -1.9999999999999993 + 0.0im  0.0 + 0.0im
+</code></pre><div class="admonition is-warning"><header class="admonition-header">Warning</header><div class="admonition-body"><p>The local tensors are defined only up to a gauge transformation of the virtual spaces. This means that the tensors are not uniquely defined, and special care must be taken when comparing MPOs on an element-wise basis.</p></div></div><p>For convenience, a number of utility functions are defined for probing the structure of the constructed MPO. For example, the spaces can be queried as follows:</p><pre><code class="language-julia hljs">left_virtualspace(O_xzx, 2)
+right_virtualspace(O_xzx, 2)
+physicalspace(O_xzx, 2)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">ℂ^2</code></pre><p>MPOs also support a range of linear algebra operations, such as addition, subtraction and multiplication, either among themselves or with a finite MPS. Here, it is important to note that these operations will increase the virtual dimension of the resulting MPO or MPS, and this naive application is thus typically not optimal. For approximate operations that do not increase the virtual dimension, the more advanced algorithms in the <a href="../algorithms/#um_algorithms">um_algorithms</a> sections should be used.</p><pre><code class="language-julia hljs">O_xzx² = O_xzx * O_xzx
+println(&quot;Virtual dimension of O_xzx²: &quot;, left_virtualspace(O_xzx², 2))
+O_xzx_sum = 0.1 * O_xzx + O_xzx²
+println(&quot;Virtual dimension of O_xzx_sum: &quot;, left_virtualspace(O_xzx_sum, 2))</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Virtual dimension of O_xzx²: ℂ^1
+Virtual dimension of O_xzx_sum: ℂ^2</code></pre><pre><code class="language-julia hljs">O_xzx_sum * FiniteMPS(3, ℂ^2, ℂ^4)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">3-site FiniteMPS:
+┌── AR[3]: TensorMap((ℂ^2 ⊗ ℂ^2) ← ℂ^1)
+├── AR[2]: TensorMap((ℂ^2 ⊗ ℂ^2) ← ℂ^2)
+│ CL[2]: TensorMap(ℂ^2 ← ℂ^2)
+└── AL[1]: TensorMap((ℂ^1 ⊗ ℂ^2) ← ℂ^2)
+</code></pre><div class="admonition is-info"><header class="admonition-header">Note</header><div class="admonition-body"><p>The virtual spaces of the resulting MPOs typically grow exponentially with the number of multiplications. Nevertheless, a number of optimizations are in place that make sure that the virtual spaces do not increase past the maximal virtual space that is dictated by the requirement of being full-rank tensors.</p></div></div><h2 id="MPOHamiltonian"><a class="docs-heading-anchor" href="#MPOHamiltonian">MPOHamiltonian</a><a id="MPOHamiltonian-1"></a><a class="docs-heading-anchor-permalink" href="#MPOHamiltonian" title="Permalink"></a></h2><p>We can also represent quantum Hamiltonians in the same form. This is done by converting a sum of local operators into a single MPO operator. The resulting operator has a very specific structure, and is often referred to as a <em>Jordan block MPO</em>.</p><p>This object can be constructed as an MPO by using the <a href="../../lib/lib/#MPSKit.MPOHamiltonian"><code>MPOHamiltonian</code></a> constructor, which takes two crucial pieces of information:</p><ol><li><p>An array of <code>VectorSpace</code> objects, which determines the local Hilbert spaces of the system. The resulting MPO will snake through the array in linear indexing order.</p></li><li><p>A set of local operators, which are characterised by a number of indices that specify on which sites the operator acts, along with an operator to define the action. These are specified as a <code>inds =&gt; operator</code> pairs, or any other iterable collection thereof. The <code>inds</code> should be tuples of valid indices for the array of <code>VectorSpace</code> objects, or a single integer for single-site operators.</p></li></ol><p>As a concrete example, we consider the <a href="https://en.wikipedia.org/wiki/Transverse-field_Ising_model">Transverse-field Ising model</a> defined by the Hamiltonian</p><p class="math-container">\[H = -J \sum_{\langle i, j \rangle} X_i X_j - h \sum_j Z_j\]</p><pre><code class="language-julia hljs">J = 1.0
+h = 0.5
+chain = fill(ℂ^2, 4) # a finite chain of 4 sites, each with a 2-dimensional Hilbert space
+single_site_operators = [1 =&gt; -h * S_z, 2 =&gt; -h * S_z, 3 =&gt; -h * S_z]
+two_site_operators = [(1, 2) =&gt; -J * S_x ⊗ S_x, (2, 3) =&gt; -J * S_x ⊗ S_x]
+H_ising = MPOHamiltonian(chain, single_site_operators..., two_site_operators...);</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">MPOHamiltonian{TensorKit.ComplexSpace, TensorKit.TrivialTensorMap{TensorKit.ComplexSpace, 2, 2, Matrix{ComplexF64}}, ComplexF64}(MPSKit.SparseMPOSlice{TensorKit.ComplexSpace, TensorKit.TrivialTensorMap{TensorKit.ComplexSpace, 2, 2, Matrix{ComplexF64}}, ComplexF64, A, B} where {A&lt;:AbstractMatrix{Union{ComplexF64, TensorKit.TrivialTensorMap{TensorKit.ComplexSpace, 2, 2, Matrix{ComplexF64}}}}, B&lt;:AbstractVector{TensorKit.ComplexSpace}}[[TensorMap((ℂ^1 ⊗ ℂ^2) ← (ℂ^2 ⊗ ℂ^1)):
+[:, :, 1, 1] =
+ 1.0 + 0.0im  0.0 + 0.0im
+
+[:, :, 2, 1] =
+ 0.0 + 0.0im  1.0 + 0.0im
+ TensorMap((ℂ^1 ⊗ ℂ^2) ← (ℂ^2 ⊗ ℂ^1)):
+[:, :, 1, 1] =
+ 0.0 + 0.0im  -1.414213562373095 + 0.0im
+
+[:, :, 2, 1] =
+ -1.4142135623730945 + 0.0im  0.0 + 0.0im
+ TensorMap((ℂ^1 ⊗ ℂ^2) ← (ℂ^2 ⊗ ℂ^1)):
+[:, :, 1, 1] =
+ -0.5 + 0.0im  0.0 + 0.0im
+
+[:, :, 2, 1] =
+ 0.0 + 0.0im  0.5 + 0.0im
+; TensorMap((ℂ^1 ⊗ ℂ^2) ← (ℂ^2 ⊗ ℂ^1)):
+[:, :, 1, 1] =
+ 0.0 + 0.0im  0.0 + 0.0im
+
+[:, :, 2, 1] =
+ 0.0 + 0.0im  0.0 + 0.0im
+ TensorMap((ℂ^1 ⊗ ℂ^2) ← (ℂ^2 ⊗ ℂ^1)):
+[:, :, 1, 1] =
+ 0.0 + 0.0im  0.0 + 0.0im
+
+[:, :, 2, 1] =
+ 0.0 + 0.0im  0.0 + 0.0im
+ TensorMap((ℂ^1 ⊗ ℂ^2) ← (ℂ^2 ⊗ ℂ^1)):
+[:, :, 1, 1] =
+ 0.0 + 0.0im  0.0 + 0.0im
+
+[:, :, 2, 1] =
+ 0.0 + 0.0im  0.0 + 0.0im
+; TensorMap((ℂ^1 ⊗ ℂ^2) ← (ℂ^2 ⊗ ℂ^1)):
+[:, :, 1, 1] =
+ 0.0 + 0.0im  0.0 + 0.0im
+
+[:, :, 2, 1] =
+ 0.0 + 0.0im  0.0 + 0.0im
+ TensorMap((ℂ^1 ⊗ ℂ^2) ← (ℂ^2 ⊗ ℂ^1)):
+[:, :, 1, 1] =
+ 0.0 + 0.0im  0.0 + 0.0im
+
+[:, :, 2, 1] =
+ 0.0 + 0.0im  0.0 + 0.0im
+ TensorMap((ℂ^1 ⊗ ℂ^2) ← (ℂ^2 ⊗ ℂ^1)):
+[:, :, 1, 1] =
+ 1.0 + 0.0im  0.0 + 0.0im
+
+[:, :, 2, 1] =
+ 0.0 + 0.0im  1.0 + 0.0im
+], [TensorMap((ℂ^1 ⊗ ℂ^2) ← (ℂ^2 ⊗ ℂ^1)):
+[:, :, 1, 1] =
+ 1.0 + 0.0im  0.0 + 0.0im
+
+[:, :, 2, 1] =
+ 0.0 + 0.0im  1.0 + 0.0im
+ TensorMap((ℂ^1 ⊗ ℂ^2) ← (ℂ^2 ⊗ ℂ^1)):
+[:, :, 1, 1] =
+ 0.0 + 0.0im  -1.414213562373095 + 0.0im
+
+[:, :, 2, 1] =
+ -1.4142135623730945 + 0.0im  0.0 + 0.0im
+ TensorMap((ℂ^1 ⊗ ℂ^2) ← (ℂ^2 ⊗ ℂ^1)):
+[:, :, 1, 1] =
+ -0.5 + 0.0im  0.0 + 0.0im
+
+[:, :, 2, 1] =
+ 0.0 + 0.0im  0.5 + 0.0im
+; TensorMap((ℂ^1 ⊗ ℂ^2) ← (ℂ^2 ⊗ ℂ^1)):
+[:, :, 1, 1] =
+ 0.0 + 0.0im  0.0 + 0.0im
+
+[:, :, 2, 1] =
+ 0.0 + 0.0im  0.0 + 0.0im
+ TensorMap((ℂ^1 ⊗ ℂ^2) ← (ℂ^2 ⊗ ℂ^1)):
+[:, :, 1, 1] =
+ 0.0 + 0.0im  0.0 + 0.0im
+
+[:, :, 2, 1] =
+ 0.0 + 0.0im  0.0 + 0.0im
+ TensorMap((ℂ^1 ⊗ ℂ^2) ← (ℂ^2 ⊗ ℂ^1)):
+[:, :, 1, 1] =
+ 0.0 + 0.0im  0.7071067811865475 + 0.0im
+
+[:, :, 2, 1] =
+ 0.7071067811865476 + 0.0im  0.0 + 0.0im
+; TensorMap((ℂ^1 ⊗ ℂ^2) ← (ℂ^2 ⊗ ℂ^1)):
+[:, :, 1, 1] =
+ 0.0 + 0.0im  0.0 + 0.0im
+
+[:, :, 2, 1] =
+ 0.0 + 0.0im  0.0 + 0.0im
+ TensorMap((ℂ^1 ⊗ ℂ^2) ← (ℂ^2 ⊗ ℂ^1)):
+[:, :, 1, 1] =
+ 0.0 + 0.0im  0.0 + 0.0im
+
+[:, :, 2, 1] =
+ 0.0 + 0.0im  0.0 + 0.0im
+ TensorMap((ℂ^1 ⊗ ℂ^2) ← (ℂ^2 ⊗ ℂ^1)):
+[:, :, 1, 1] =
+ 1.0 + 0.0im  0.0 + 0.0im
+
+[:, :, 2, 1] =
+ 0.0 + 0.0im  1.0 + 0.0im
+], [TensorMap((ℂ^1 ⊗ ℂ^2) ← (ℂ^2 ⊗ ℂ^1)):
+[:, :, 1, 1] =
+ 1.0 + 0.0im  0.0 + 0.0im
+
+[:, :, 2, 1] =
+ 0.0 + 0.0im  1.0 + 0.0im
+ TensorMap((ℂ^1 ⊗ ℂ^2) ← (ℂ^2 ⊗ ℂ^1)):
+[:, :, 1, 1] =
+ 0.0 + 0.0im  0.0 + 0.0im
+
+[:, :, 2, 1] =
+ 0.0 + 0.0im  0.0 + 0.0im
+ TensorMap((ℂ^1 ⊗ ℂ^2) ← (ℂ^2 ⊗ ℂ^1)):
+[:, :, 1, 1] =
+ -0.5 + 0.0im  0.0 + 0.0im
+
+[:, :, 2, 1] =
+ 0.0 + 0.0im  0.5 + 0.0im
+; TensorMap((ℂ^1 ⊗ ℂ^2) ← (ℂ^2 ⊗ ℂ^1)):
+[:, :, 1, 1] =
+ 0.0 + 0.0im  0.0 + 0.0im
+
+[:, :, 2, 1] =
+ 0.0 + 0.0im  0.0 + 0.0im
+ TensorMap((ℂ^1 ⊗ ℂ^2) ← (ℂ^2 ⊗ ℂ^1)):
+[:, :, 1, 1] =
+ 0.0 + 0.0im  0.0 + 0.0im
+
+[:, :, 2, 1] =
+ 0.0 + 0.0im  0.0 + 0.0im
+ TensorMap((ℂ^1 ⊗ ℂ^2) ← (ℂ^2 ⊗ ℂ^1)):
+[:, :, 1, 1] =
+ 0.0 + 0.0im  0.7071067811865475 + 0.0im
+
+[:, :, 2, 1] =
+ 0.7071067811865476 + 0.0im  0.0 + 0.0im
+; TensorMap((ℂ^1 ⊗ ℂ^2) ← (ℂ^2 ⊗ ℂ^1)):
+[:, :, 1, 1] =
+ 0.0 + 0.0im  0.0 + 0.0im
+
+[:, :, 2, 1] =
+ 0.0 + 0.0im  0.0 + 0.0im
+ TensorMap((ℂ^1 ⊗ ℂ^2) ← (ℂ^2 ⊗ ℂ^1)):
+[:, :, 1, 1] =
+ 0.0 + 0.0im  0.0 + 0.0im
+
+[:, :, 2, 1] =
+ 0.0 + 0.0im  0.0 + 0.0im
+ TensorMap((ℂ^1 ⊗ ℂ^2) ← (ℂ^2 ⊗ ℂ^1)):
+[:, :, 1, 1] =
+ 1.0 + 0.0im  0.0 + 0.0im
+
+[:, :, 2, 1] =
+ 0.0 + 0.0im  1.0 + 0.0im
+], [TensorMap((ℂ^1 ⊗ ℂ^2) ← (ℂ^2 ⊗ ℂ^1)):
+[:, :, 1, 1] =
+ 1.0 + 0.0im  0.0 + 0.0im
+
+[:, :, 2, 1] =
+ 0.0 + 0.0im  1.0 + 0.0im
+ TensorMap((ℂ^1 ⊗ ℂ^2) ← (ℂ^2 ⊗ ℂ^1)):
+[:, :, 1, 1] =
+ 0.0 + 0.0im  0.0 + 0.0im
+
+[:, :, 2, 1] =
+ 0.0 + 0.0im  0.0 + 0.0im
+ TensorMap((ℂ^1 ⊗ ℂ^2) ← (ℂ^2 ⊗ ℂ^1)):
+[:, :, 1, 1] =
+ 0.0 + 0.0im  0.0 + 0.0im
+
+[:, :, 2, 1] =
+ 0.0 + 0.0im  0.0 + 0.0im
+; TensorMap((ℂ^1 ⊗ ℂ^2) ← (ℂ^2 ⊗ ℂ^1)):
+[:, :, 1, 1] =
+ 0.0 + 0.0im  0.0 + 0.0im
+
+[:, :, 2, 1] =
+ 0.0 + 0.0im  0.0 + 0.0im
+ TensorMap((ℂ^1 ⊗ ℂ^2) ← (ℂ^2 ⊗ ℂ^1)):
+[:, :, 1, 1] =
+ 0.0 + 0.0im  0.0 + 0.0im
+
+[:, :, 2, 1] =
+ 0.0 + 0.0im  0.0 + 0.0im
+ TensorMap((ℂ^1 ⊗ ℂ^2) ← (ℂ^2 ⊗ ℂ^1)):
+[:, :, 1, 1] =
+ 0.0 + 0.0im  0.0 + 0.0im
+
+[:, :, 2, 1] =
+ 0.0 + 0.0im  0.0 + 0.0im
+; TensorMap((ℂ^1 ⊗ ℂ^2) ← (ℂ^2 ⊗ ℂ^1)):
+[:, :, 1, 1] =
+ 0.0 + 0.0im  0.0 + 0.0im
+
+[:, :, 2, 1] =
+ 0.0 + 0.0im  0.0 + 0.0im
+ TensorMap((ℂ^1 ⊗ ℂ^2) ← (ℂ^2 ⊗ ℂ^1)):
+[:, :, 1, 1] =
+ 0.0 + 0.0im  0.0 + 0.0im
+
+[:, :, 2, 1] =
+ 0.0 + 0.0im  0.0 + 0.0im
+ TensorMap((ℂ^1 ⊗ ℂ^2) ← (ℂ^2 ⊗ ℂ^1)):
+[:, :, 1, 1] =
+ 1.0 + 0.0im  0.0 + 0.0im
+
+[:, :, 2, 1] =
+ 0.0 + 0.0im  1.0 + 0.0im
+]])</code></pre><p>Various alternative constructions are possible, such as using a <code>Dict</code> with key-value pairs that specify the operators, or using generator expressions to simplify the construction.</p><pre><code class="language-julia hljs">H_ising′ = -J * MPOHamiltonian(chain,
+                               (i, i + 1) =&gt; S_x ⊗ S_x for i in 1:(length(chain) - 1)) -
+            h * MPOHamiltonian(chain, i =&gt; S_z for i in 1:length(chain))
+isapprox(H_ising, H_ising′; atol=1e-6)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">false</code></pre><p>Note that this construction is not limited to nearest-neighbour interactions, or 1D systems. In particular, it is possible to construct quasi-1D realisations of 2D systems, by using different arrays of <code>VectorSpace</code> objects. For example, the 2D Ising model on a square lattice can be constructed as follows:</p><pre><code class="language- hljs">square = fill(ℂ^2, 4, 4) # a 4x4 square lattice
+operators = Dict()
+
+local_operators = Dict()
+for I in eachindex(square)
+    local_operators[(I,)] = -h * S_z # single site operators still require tuples of indices
+end
+
+# horizontal and vertical interactions are easier using Cartesian indices
+horizontal_operators = Dict()
+I_horizontal = CartesianIndex(1, 0)
+for I in eachindex(IndexCartesian(), square)
+    if I[1] &lt; size(square, 1)
+        horizontal_operators[(I, I + I_horizontal)] = -J * S_x ⊗ S_x
+    end
+end
+
+vertical_operators = Dict()
+I_vertical = CartesianIndex(0, 1)
+for I in eachindex(IndexCartesian(), square)
+    if I[2] &lt; size(square, 2)
+        vertical_operators[(I, I + I_vertical)] = -J * S_x ⊗ S_x
+    end
+end
+
+H_ising_2d = MPOHamiltonian(square, local_operators) +
+    MPOHamiltonian(square, horizontal_operators) +
+    MPOHamiltonian(square, vertical_operators)</code></pre><p>There are various utility functions available for constructing more advanced lattices, for which the <a href="../lattices/#lattices">lattices</a> section should be consulted.</p><h3 id="Expert-mode"><a class="docs-heading-anchor" href="#Expert-mode">Expert mode</a><a id="Expert-mode-1"></a><a class="docs-heading-anchor-permalink" href="#Expert-mode" title="Permalink"></a></h3><p>The <code>MPOHamiltonian</code> constructor is in fact an automated way of constructing the aforementioned <em>Jordan block MPO</em>. In its most general form, the matrix <span>$W$</span> takes on the form of the following block matrix:</p><p class="math-container">\[\begin{pmatrix}
+1 &amp; C &amp; D \\
+0 &amp; A &amp; B \\
+0 &amp; 0 &amp; 1
+\end{pmatrix}\]</p><p>which generates all single-site local operators <span>$D$</span>, all two-site operators <span>$CB$</span>, three-site operators <span>$CAB$</span>, and so on. Additionally, this machinery can also be used to construct interaction that are of (exponentially decaying) infinite range, and to approximate power-law interactions.</p><p>In order to illustrate this, consider the following explicit example of the Transverse-field Ising model:</p><p class="math-container">\[W = \begin{pmatrix}
+1 &amp; X &amp; -hZ \\ 
+0 &amp; 0 &amp; -JX \\
+0 &amp; 0 &amp; 1
+\end{pmatrix}\]</p><p>If we add in the left and right boundary vectors</p><p class="math-container">\[v_L = \begin{pmatrix}
+1 &amp; 0 &amp; 0
+\end{pmatrix}
+, \qquad 
+v_R = \begin{pmatrix}
+0 \\ 0 \\ 1
+\end{pmatrix}\]</p><p>One can easily check that the Hamiltonian on <span>$N$</span> sites is given by the contraction</p><p class="math-container">\[H = V_L W^{\otimes N} V_R\]</p><p>We can even verify this symbolically:</p><pre><code class="language-julia hljs">using Symbolics
+L = 4
+# generate W matrices
+@variables A[1:L] B[1:L] C[1:L] D[1:L]
+Ws = map(1:L) do l
+    return [1 C[l] D[l]
+            0 A[l] B[l]
+            0 0    1]
+end
+
+# generate boundary vectors
+Vₗ = [1, 0, 0]&#39;
+Vᵣ = [0, 0, 1]
+
+# expand the MPO
+expand(Vₗ * prod(Ws) * Vᵣ)</code></pre><p class="math-container">\[ \begin{equation}
+D_1 + D_2 + D_3 + D_4 + B_2 C_1 + B_3 C_2 + B_4 C_3 + A_2 B_3 C_1 + A_3 B_4 C_2 + A_2 A_3 B_4 C_1
+\end{equation}
+ \]</p><p>The <code>MPOHamiltonian</code> constructor can also be used to construct the operator from this most general form, by supplying a 3-dimensional array <span>$W$</span> to the constructor. Here, the first dimension specifies the site in the unit cell, the second dimension specifies the row of the matrix, and the third dimension specifies the column of the matrix.</p><div class="admonition is-info"><header class="admonition-header">Note</header><div class="admonition-body"><p>While the above example can be constructed from building blocks that are strictly local operators, this is not always the case, especially when symmetries are involved. In those cases, the elements of the matrix <span>$W$</span> have additional virtual legs that are contracted between different sites.</p></div></div><h3 id="Working-with-MPOHamiltonian-objects"><a class="docs-heading-anchor" href="#Working-with-MPOHamiltonian-objects">Working with <code>MPOHamiltonian</code> objects</a><a id="Working-with-MPOHamiltonian-objects-1"></a><a class="docs-heading-anchor-permalink" href="#Working-with-MPOHamiltonian-objects" title="Permalink"></a></h3><div class="admonition is-warning"><header class="admonition-header">Warning</header><div class="admonition-body"><p>This part is still a work in progress</p></div></div><p>Because of the discussion above, the <code>MPOHamiltonian</code> object is in fact just a <code>FiniteMPO</code>, with some additional structure. This means that similar operations and properties are available, such as the virtual spaces, or the individual tensors. However, the block structure of the operator means that now the virtual spaces are not just a single space, but a collection (direct sum) of spaces, one for each row/column.</p><p>&lt;!– TODO: add examples virtualspace once blocktensors are in place –&gt;</p><h2 id="DenseMPO"><a class="docs-heading-anchor" href="#DenseMPO">DenseMPO</a><a id="DenseMPO-1"></a><a class="docs-heading-anchor-permalink" href="#DenseMPO" title="Permalink"></a></h2><p>This operator is used for statistical physics problems. It is simply a periodic array of mpo tensors.</p><p>Can be created using</p><pre><code class="language-julia hljs">DenseMPO(t::AbstractArray{T,1}) where T&lt;:MPOTensor</code></pre><h2 id="SparseMPO"><a class="docs-heading-anchor" href="#SparseMPO">SparseMPO</a><a id="SparseMPO-1"></a><a class="docs-heading-anchor-permalink" href="#SparseMPO" title="Permalink"></a></h2><p><code>SparseMPO</code> is similar to a <code>DenseMPO</code>, in that it again represents an mpo tensor, periodically repeated. However this type keeps track of all internal zero blocks, allowing for a more efficient representation of certain operators (such as time evolution operators and quantum hamiltonians). You can convert a sparse mpo to a densempo, but the converse does not hold.</p><p>Indexing a <code>SparseMPO</code> returns a <code>SparseMPOSlice</code> object, which has 3 fields</p><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="MPSKit.SparseMPOSlice" href="#MPSKit.SparseMPOSlice"><code>MPSKit.SparseMPOSlice</code></a> — <span class="docstring-category">Type</span></header><section><div><pre><code class="language-julia hljs">SparseMPOSlice{S,T,E} &lt;: AbstractArray{T,2}</code></pre><p>A view of a sparse MPO at a single position.</p><p><strong>Fields</strong></p><ul><li><code>Os::AbstractMatrix{Union{T,E}}</code>: matrix of operators.</li><li><code>domspaces::AbstractVector{S}</code>: list of left virtual spaces.</li><li><code>imspaces::AbstractVector{S}</code>: list of right virtual spaces.</li><li><code>pspace::S</code>: physical space.</li></ul></div><a class="docs-sourcelink" target="_blank" href="https://github.com/maartenvd/MPSKit.jl/blob/a0b2388c593ecca238d59144cab416d3c20b8082/src/operators/sparsempo/sparseslice.jl#L2-L12">source</a></section></article><p>When indexing a <code>SparseMPOSlice</code> at index <code>[j, k]</code> (or equivalently <code>SparseMPO[i][j, k]</code>), the code looks up the corresponding field in <code>Os[j, k]</code>. Either that element is a tensormap, in which case it gets returned. If it equals <code>zero(E)</code>, then we return a tensormap</p><pre><code class="language-julia hljs">domspaces[j] * pspace ← pspace * imspaces[k]</code></pre><p>with norm zero. If the element is a nonzero number, then implicitly we have the identity operator there (multiplied by that element).</p><p>The idea here is that you don&#39;t have to worry about the underlying structure, you can just index into a sparsempo as if it is a vector of matrices. Behind the scenes we then optimize certain contractions by using the sparsity structure.</p><p>SparseMPO are always assumed to be periodic in the first index (position). In this way, we can both represent periodic infinite mpos and place dependent finite mpos.</p><h2 id="MPOHamiltonian-2"><a class="docs-heading-anchor" href="#MPOHamiltonian-2">MPOHamiltonian</a><a class="docs-heading-anchor-permalink" href="#MPOHamiltonian-2" title="Permalink"></a></h2><p>We represent all quantum hamiltonians in their MPO form. This consists of an upper triangular (sparse) matrix of regular MPO tensors per site, resulting in an array with 3 dimensions. Thus, an <code>MPOHamiltonian</code> is just a wrapper around <code>SparseMPO</code>, but with some guarantees about its structure. As an example, the following bit of code constructs the Ising hamiltonian.</p><pre><code class="language-julia hljs">T = ComplexF64
 X = TensorMap(T[0 1; 1 0], ℂ^2 ← ℂ^2)
 Z = TensorMap(T[1 0; 0 -1], ℂ^2 ← ℂ^2)
 
@@ -36,4 +356,4 @@ H_Heisenberg_SU2 = MPOHamiltonian(data)</code></pre><pre class="documenter-examp
 
 [:, :, 2, 1] =
  1.0 + 0.0im  0.0 + 0.0im
-</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../states/">« States</a><a class="docs-footer-nextpage" href="../algorithms/">Algorithms »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.4.1 on <span class="colophon-date" title="Tuesday 21 May 2024 00:00">Tuesday 21 May 2024</span>. Using Julia version 1.10.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../states/">« States</a><a class="docs-footer-nextpage" href="../algorithms/">Algorithms »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.4.1 on <span class="colophon-date" title="Monday 3 June 2024 10:18">Monday 3 June 2024</span>. Using Julia version 1.10.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
