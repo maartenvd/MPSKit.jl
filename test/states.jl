@@ -96,7 +96,62 @@ end
     end
 end
 
-@testset "WindowMPS" begin
+@testset "Fixed WindowMPS" begin
+    ham = force_planar(transverse_field_ising(; g=8.0))
+    (gs, _, _) = find_groundstate(InfiniteMPS([ℙ^2], [ℙ^10]), ham, VUMPS(; verbosity=0))
+
+    #constructor 1 - give it a plain array of tensors
+    window_1 = WindowMPS(gs, copy.([gs.AC[1]; [gs.AR[i] for i in 2:10]]), gs; fixleft=true,
+                         fixright=true)
+
+    #constructor 2 - used to take a "slice" from an infinite mps
+    window_2 = WindowMPS(gs, 10; fixleft=true, fixright=true)
+
+    # we should logically have that window_1 approximates window_2
+    ovl = dot(window_1, window_2)
+    @test ovl ≈ 1 atol = 1e-8
+
+    #constructor 3 - random initial tensors
+    window = WindowMPS(rand, ComplexF64, 10, ℙ^2, ℙ^10, gs, gs; fixleft=true, fixright=true)
+    normalize!(window)
+
+    for i in 1:length(window)
+        @test window.AC[i] ≈ window.AL[i] * window.CR[i]
+        @test window.AC[i] ≈ MPSKit._transpose_front(window.CR[i - 1] *
+                                                     MPSKit._transpose_tail(window.AR[i]))
+    end
+
+    @test norm(window) ≈ 1
+    window = window * 3
+    @test 9 ≈ norm(window)^2
+    window = 3 * window
+    @test 9 * 9 ≈ norm(window)^2
+    normalize!(window)
+
+    edens1 = expectation_value(window, ham)
+    e1 = expectation_value(window, ham, 1:length(window))
+
+    v1 = variance(window, ham)
+    (window, envs, _) = find_groundstate(window, ham, DMRG(; verbosity=0))
+    v2 = variance(window, ham)
+
+    edens2 = expectation_value(window, ham)
+    e2 = expectation_value(window, ham, 1:length(window))
+
+    @test v2 < v1
+    @test real(e2) ≤ real(e1)
+
+    (window, envs) = timestep(window, ham, 0.1, 0.0, TDVP2(), envs)
+    (window, envs) = timestep(window, ham, 0.1, 0.0, TDVP(), envs)
+
+    edens3 = expectation_value(window, ham)
+    e3 = expectation_value(window, ham, 1:length(window), envs)
+
+    @test edens2 ≈ edens3 atol = 1e-4
+    @test e2 ≈ e3 atol = 1e-4
+end
+
+@testset "Variable WindowMPS" begin
     ham = force_planar(transverse_field_ising(; g=8.0))
     (gs, _, _) = find_groundstate(InfiniteMPS([ℙ^2], [ℙ^10]), ham, VUMPS(; verbosity=0))
 
@@ -116,8 +171,8 @@ end
 
     for i in 1:length(window)
         @test window.AC[i] ≈ window.AL[i] * window.CR[i]
-        @test window.AC[i] ≈
-              _transpose_front(window.CR[i - 1] * _transpose_tail(window.AR[i]))
+        @test window.AC[i] ≈ MPSKit._transpose_front(window.CR[i - 1] *
+                                                     MPSKit._transpose_tail(window.AR[i]))
     end
 
     @test norm(window) ≈ 1
@@ -127,24 +182,29 @@ end
     @test 9 * 9 ≈ norm(window)^2
     normalize!(window)
 
-    e1 = expectation_value(window, ham)
+    ham = Window(ham, ham, ham)
+    edens1 = expectation_value(window, ham)
+    e1 = expectation_value(window, ham, 1:length(window))
 
     v1 = variance(window, ham)
-    (window, envs, _) = find_groundstate(window, ham, DMRG(; verbosity=0))
+    gs_alg = Window(VUMPS(; verbosity=0), DMRG(; verbosity=0), VUMPS(; verbosity=0))
+    (window, envs, _) = find_groundstate(window, ham, gs_alg)
     v2 = variance(window, ham)
 
-    e2 = expectation_value(window, ham)
+    edens2 = expectation_value(window, ham)
+    e2 = expectation_value(window, ham, 1:length(window))
 
     @test v2 < v1
-    @test real(e2[2]) ≤ real(e1[2])
+    @test real(e2) ≤ real(e1)
 
-    window, envs = timestep(window, ham, 0.1, 0.0, TDVP2(), envs)
-    window, envs = timestep(window, ham, 0.1, 0.0, TDVP(), envs)
+    (window, envs) = timestep(window, ham, 0.1, 0.0, WindowTDVP(; middle=TDVP2()), envs)
+    (window, envs) = timestep(window, ham, 0.1, 0.0, WindowTDVP(), envs)
 
-    e3 = expectation_value(window, ham)
+    edens3 = expectation_value(window, ham)
+    e3 = expectation_value(window, ham, 1:length(window), envs)
 
-    @test e2[1] ≈ e3[1] atol = 1e-4
-    @test e2[2] ≈ e3[2] atol = 1e-4
+    @test edens2 ≈ edens3 atol = 1e-4
+    @test e2 ≈ e3 atol = 1e-4
 end
 
 @testset "Quasiparticle state" verbose = true begin
@@ -178,7 +238,7 @@ end
 
     @testset "Infinite" for (th, D, d) in
                             [(force_planar(transverse_field_ising()), ℙ^10, ℙ^2),
-                             (heisenberg_XXX(SU2Irrep; spin=1), Rep[SU₂](1 => 3, 0 => 2),
+                             (heisenberg_XXX(SU2Irrep; spin=1), Rep[SU₂](1 => 1, 0 => 3),
                               Rep[SU₂](1 => 1))]
         period = rand(1:4)
         ψ = InfiniteMPS(fill(d, period), fill(D, period))

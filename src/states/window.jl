@@ -1,9 +1,7 @@
-# Note : this is intended to be a template for windowmps and windows of operators/environments but this clashes with abstractfinitemps.
-
 "
-    Window(leftstate,window,rightstate)
+    Window(left,middle,right)
 
-    general struct an object with a left, middle and right part.
+    general struct of an object with a left, middle and right part.
 "
 struct Window{L,M,R}
     left::L
@@ -11,7 +9,20 @@ struct Window{L,M,R}
     right::R
 end
 
-Base.length(win::Window) = length(win.middle)
+function Base.:+(window1::Window, window2::Window)
+    return Window(window1.left + window2.left, window1.middle + window2.middle,
+                  window1.right + window2.right)
+end
 
-# do we need copy? 
-# Base.copy(win::Window) = Window(copy(win.left),copy(win.middle),copy(win.right))
+# Holy traits
+TimeDependence(x::Window) = istimed(x) ? TimeDependent() : NotTimeDependent()
+istimed(x::Window) = istimed(x.left) || istimed(x.middle) || istimed(x.right)
+
+function _eval_at(x::Window, args...)
+    return Window(_eval_at(x.left, args...), _eval_at(x.middle, args...),
+                  _eval_at(x.right, args...))
+end
+safe_eval(::TimeDependent, x::Window, t::Number) = _eval_at(x, t)
+
+# For users
+(x::Window)(t::Number) = safe_eval(x, t)

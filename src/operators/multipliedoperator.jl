@@ -50,3 +50,8 @@ Base.:*(op::UntimedOperator, g::Function) = MultipliedOperator(op.op, t -> g(t) 
 function environments(st, x::MultipliedOperator, args...; kwargs...)
     return environments(st, x.op, args...; kwargs...)
 end
+
+function MultipliedOperator(x::Window, f)
+    return Window(MultipliedOperator(x.left, f), MultipliedOperator(x.middle, f),
+                  MultipliedOperator(x.right, f))
+end

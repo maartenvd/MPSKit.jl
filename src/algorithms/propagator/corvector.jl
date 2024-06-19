@@ -153,19 +153,11 @@ function propagator(A::AbstractFiniteMPS, z, H::MPOHamiltonian,
     return v, init
 end
 
-function squaredenvs(state::AbstractFiniteMPS, H::MPOHamiltonian,
-                     envs=environments(state, H))
-    nH = conj(H) * H
-    L = length(state)
-
-    # to construct the squared caches we will first initialize environments
-    # then make all data invalid so it will be recalculated
-    # then initialize the right caches at the edge
-    ncocache = environments(state, nH)
-
+function squaredenvs(Ψ, H, envs, H2, envs2)
+    L = length(Ψ)
     # make sure the dependencies are incorrect, so data will be recalculated
     for i in 1:L
-        poison!(ncocache, i)
+        invalidate!(envs2, i)
     end
 
     # impose the correct boundary conditions
@@ -173,22 +165,35 @@ function squaredenvs(state::AbstractFiniteMPS, H::MPOHamiltonian,
     indmap = LinearIndices((H.odim, H.odim))
     @sync begin
         Threads.@spawn begin
-            nleft = leftenv(ncocache, 1, state)
+            nleft = leftenv(envs2, 1, Ψ)
             for i in 1:(H.odim), j in 1:(H.odim)
-                nleft[indmap[i, j]] = _contract_leftenv²(leftenv(envs, 1, state)[j],
-                                                         leftenv(envs, 1, state)[i])
+                nleft[indmap[i, j]] = _contract_leftenv²(leftenv(envs, 1, Ψ)[j],
+                                                         leftenv(envs, 1, Ψ)[i])
             end
         end
         Threads.@spawn begin
-            nright = rightenv(ncocache, L, state)
+            nright = rightenv(envs2, L, Ψ)
             for i in 1:(H.odim), j in 1:(H.odim)
-                nright[indmap[i, j]] = _contract_rightenv²(rightenv(envs, L, state)[j],
-                                                           rightenv(envs, L, state)[i])
+                nright[indmap[i, j]] = _contract_rightenv²(rightenv(envs, L, Ψ)[j],
+                                                           rightenv(envs, L, Ψ)[i])
             end
         end
     end
+    return H2, envs2
+end
 
-    return nH, ncocache
+function squaredenvs(Ψ::AbstractFiniteMPS, H::MPOHamiltonian,
+                     envs::FinEnv=environments(Ψ, H))
+    # to construct the squared caches we will first initialize environments
+    # then make all data invalid so it will be recalculated
+    # then initialize the correct caches at the edge
+    nH = conj(H) * H
+    return squaredenvs(Ψ, H, envs, nH, environments(Ψ, nH))
+end
+
+function squaredenvs(Ψ::WindowMPS, H::Window, envs::WindowEnv=environments(Ψ, H))
+    nH = Window(conj(H.left) * H.left, conj(H.middle) * H.middle, conj(H.right) * H.right)
+    return squaredenvs(Ψ, H.middle, envs, nH, environments(Ψ, nH))
 end
 
 function _contract_leftenv²(GL_top, GL_bot)

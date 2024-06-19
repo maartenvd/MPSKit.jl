@@ -1,5 +1,5 @@
 """
-    FinEnv keeps track of the environments for FiniteMPS / WindowMPS
+    FinEnv keeps track of the environments for FiniteMPS
     It automatically checks if the queried environment is still correctly cached and if not - recalculates
 
     if above is set to nothing, above === below.
@@ -17,6 +17,9 @@ struct FinEnv{A,B,C,D} <: Cache
     leftenvs::Vector{D}
     rightenvs::Vector{D}
 end
+
+#do we want to call these function environments? or do we want to restrict it to
+# only the constructor environments(state,ham)?
 
 function environments(below, t::Tuple, args...; kwargs...)
     return environments(below, t[1], t[2], args...; kwargs...)
@@ -80,20 +83,7 @@ function MPSKit.environments(below::FiniteMPS{S}, O::DenseMPO, above=nothing) wh
     return environments(below, O, above, leftstart, rightstart)
 end
 
-#extract the correct leftstart/rightstart for WindowMPS
-function environments(state::WindowMPS, O::Union{SparseMPO,MPOHamiltonian,DenseMPO},
-                      above=nothing; lenvs=environments(state.left_gs, O),
-                      renvs=environments(state.right_gs, O))
-    return environments(state, O, above, copy(leftenv(lenvs, 1, state.left_gs)),
-                        copy(rightenv(renvs, length(state), state.right_gs)))
-end
-
-function environments(below::S, above::S) where {S<:Union{FiniteMPS,WindowMPS}}
-    S isa WindowMPS &&
-        (above.left_gs == below.left_gs || throw(ArgumentError("left gs differs")))
-    S isa WindowMPS &&
-        (above.right_gs == below.right_gs || throw(ArgumentError("right gs differs")))
-
+function environments(below::FiniteMPS, above::FiniteMPS)
     opp = fill(nothing, length(below))
     return environments(below, opp, above, l_LL(above), r_RR(above))
 end
@@ -105,7 +95,8 @@ function environments(state::Union{FiniteMPS,WindowMPS}, opp::ProjectionOperator
 end
 
 #notify the cache that we updated in-place, so it should invalidate the dependencies
-function poison!(ca::FinEnv, ind)
+# this forces the transfers to be recalculated lazily 
+function invalidate!(ca::FinEnv, ind)
     ca.ldependencies[ind] = similar(ca.ldependencies[ind])
     return ca.rdependencies[ind] = similar(ca.rdependencies[ind])
 end
@@ -113,9 +104,9 @@ end
 #rightenv[ind] will be contracteable with the tensor on site [ind]
 function rightenv(ca::FinEnv, ind, state)
     a = findfirst(i -> !(state.AR[i] === ca.rdependencies[i]), length(state):-1:(ind + 1))
-    a = a == nothing ? nothing : length(state) - a + 1
+    a = isnothing(a) ? nothing : length(state) - a + 1
 
-    if a != nothing
+    if !isnothing(a)
         #we need to recalculate
         for j in a:-1:(ind + 1)
             above = isnothing(ca.above) ? state.AR[j] : ca.above.AR[j]
@@ -131,7 +122,7 @@ end
 function leftenv(ca::FinEnv, ind, state)
     a = findfirst(i -> !(state.AL[i] === ca.ldependencies[i]), 1:(ind - 1))
 
-    if a != nothing
+    if !isnothing(a)
         #we need to recalculate
         for j in a:(ind - 1)
             above = isnothing(ca.above) ? state.AL[j] : ca.above.AL[j]

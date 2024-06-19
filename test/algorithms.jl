@@ -276,6 +276,63 @@ end
 
         @test abs(dot(ψ₀, ψ_lazy)) ≈ 1 atol = atol
     end
+
+    infinite_algs = [VUMPS(; tol, verbosity),
+                     IDMRG1(; tol, verbosity),
+                     GradientGrassmann(; tol=tol, verbosity=verbosity)]
+    finite_algs = [DMRG(; verbosity),
+                   DMRG2(; verbosity, trscheme=truncdim(D)),
+                   DMRG(; verbosity)]
+    window_algs = map((x, y) -> Window(x, y, x), infinite_algs, finite_algs)
+
+    L = 10
+    H = force_planar(transverse_field_ising(; g))
+    H = Window(H, repeat(H, L), H)
+
+    @testset "Window $i" for (i, alg) in enumerate(window_algs)
+        ψl = InfiniteMPS(rand, ComplexF64, [ℙ^2], [ℙ^D])
+        ψr = InfiniteMPS(rand, ComplexF64, [ℙ^2], [ℙ^D])
+        ψ₀ = WindowMPS(rand, ComplexF64, L, ℙ^2, ℙ^D, ψl, ψr)
+
+        v₀ = variance(ψ₀, H)
+        ψ, envs, δ = find_groundstate(ψ₀, H, alg)
+        v = variance(ψ, H, envs)
+
+        @test sum(δ) < 1e-3
+        @test v₀ > v && v < 1e-2 # energy variance should be low
+
+        #make sure that it is uniform
+        edens = expectation_value(ψ, H, envs)
+        @test edens[1] ≈ edens[2] atol = 1e-06
+        @test edens[end - 1] ≈ edens[end] atol = 1e-06
+    end
+
+    g += 1
+    H2 = force_planar(transverse_field_ising(; g))
+    H2 = Window(H2, repeat(H2, L), H2)
+    Hlazy = LazySum([H, H2])
+
+    @testset "LazySum Window $i" for (i, alg) in enumerate(window_algs)
+        ψl = InfiniteMPS(rand, ComplexF64, [ℙ^2], [ℙ^D])
+        ψr = InfiniteMPS(rand, ComplexF64, [ℙ^2], [ℙ^D])
+        ψ₀ = WindowMPS(rand, ComplexF64, 10, ℙ^2, ℙ^D, ψl, ψr)
+
+        v₀ = variance(ψ₀, Hlazy)
+        ψ, envs, δ = find_groundstate(ψ₀, Hlazy, alg)
+        v = variance(ψ, Hlazy)
+
+        @test sum(δ) < 1e-3
+        @test v₀ > v && v < 1e-2 # energy variance should be low
+
+        ψ_nolazy, envs_nolazy, _ = find_groundstate(ψ₀, sum(Hlazy), alg)
+        @test expectation_value(ψ, Hlazy, envs) ≈
+              expectation_value(ψ_nolazy, sum(Hlazy), envs_nolazy) atol = 1 - 06
+
+        #make sure that it is uniform
+        edens = expectation_value(ψ, Hlazy, envs)
+        @test edens[1] ≈ edens[2] atol = 1e-06
+        @test edens[end - 1] ≈ edens[end] atol = 1e-06
+    end
 end
 
 @testset "timestep" verbose = true begin
@@ -298,6 +355,25 @@ end
         ψ, envs = timestep(ψ₀, Hlazy, 0.0, dt, alg)
         E = expectation_value(ψ, Hlazy, envs)
         @test (3 + 1.55 - 0.1) * sum(E₀) ≈ sum(E) atol = 1e-2
+    end
+
+    ψl₀ = InfiniteMPS(rand, ComplexF64, [ℙ^2], [ℙ^1])
+    ψr₀ = InfiniteMPS(rand, ComplexF64, [ℙ^2], [ℙ^1])
+    ψ₀ = WindowMPS(ψl₀, ψ₀, ψr₀; fixleft=true, fixright=true)
+    E₀ = expectation_value(ψ₀, H)
+
+    @testset "Fixed Window $(alg isa TDVP ? "TDVP" : "TDVP2")" for alg in algs
+        ψ, envs = timestep(ψ₀, H, 0.0, dt, alg)
+        E = expectation_value(ψ, H, envs)
+        @test sum(E₀) ≈ sum(E) atol = 1e-2
+    end
+
+    Hlazy = LazySum([3 * H, 1.55 * H, -0.1 * H])
+
+    @testset "Fixed Window LazySum $(alg isa TDVP ? "TDVP" : "TDVP2")" for alg in algs
+        ψ, envs = timestep(ψ₀, Hlazy, 0.0, dt, alg)
+        E = expectation_value(ψ, Hlazy, envs)
+        @test (3 + 1.55 - 0.1) * sum(E₀) ≈ sum(E) atol = 5e-2
     end
 
     Ht = MultipliedOperator(H, t -> 4) + MultipliedOperator(H, 1.45)
@@ -340,6 +416,38 @@ end
         Et = expectation_value(ψt, Ht(1.0), envst)
         @test sum(E) ≈ sum(Et) atol = 1e-8
     end
+
+    ψl₀ = InfiniteMPS(rand, ComplexF64, [ℙ^2], [ℙ^10])
+    ψr₀ = InfiniteMPS(rand, ComplexF64, [ℙ^2], [ℙ^10])
+    ψ₀ = FiniteMPS(fill(TensorMap(rand, ComplexF64, ℙ^10 * ℙ^2, ℙ^10), 5))
+    ψ₀ = WindowMPS(ψl₀, ψ₀, ψr₀; fixleft=false, fixright=false)
+    H = force_planar(transverse_field_ising(; g=3))
+    Hwindow = Window(H, H, H)
+    ψ₀, envs, _ = find_groundstate(ψ₀, Hwindow)
+    E₀ = expectation_value(ψ₀, Hwindow, envs)
+    Hquench = force_planar(transverse_field_ising(; g=4))
+    Hquench = Window(Hquench, Hquench, Hquench)
+
+    @testset "Variable Window $(alg isa TDVP ? "TDVP" : "TDVP2")" for alg in algs
+        ψ, envs = timestep(ψ₀, Hquench, 0.0, dt, WindowTDVP(; middle=alg))
+        E = expectation_value(ψ, Hquench, envs)
+        @test sum(E₀) ≈ sum(expectation_value(ψ, Hwindow)) atol = 0.1
+        #test if still uniform
+        @test E[1] ≈ E[2] atol = 1e-04
+        @test E[end - 1] ≈ E[end] atol = 1e-04
+    end
+
+    Hquench = LazySum([MultipliedOperator(Hwindow, 3.5), MultipliedOperator(Hquench, 1.7)])
+
+    @testset "Variable Window LazySum/MultipliedOperator $(alg isa TDVP ? "TDVP" : "TDVP2")" for alg in
+                                                                                                 algs
+        ψ, envs = timestep(ψ₀, Hquench, 0.0, dt, WindowTDVP(; middle=alg))
+        E = expectation_value(ψ, Hquench, envs)
+        @test sum(E₀) ≈ sum(expectation_value(ψ, Hwindow)) atol = 0.1
+        #test if still uniform
+        @test E[1] ≈ E[2] atol = 1e-03
+        @test E[end - 1] ≈ E[end] atol = 1e-03
+    end
 end
 
 @testset "time_evolve" verbose = true begin
@@ -365,6 +473,18 @@ end
         E = expectation_value(ψ, H, envs)
         @test sum(E₀) ≈ sum(E) atol = 1e-2
     end
+
+    Ψwindow₀ = WindowMPS(ψ₀, 10)
+    Hwindow = Window(H, repeat(H, 10), H)
+    E₀ = expectation_value(Ψwindow₀, Hwindow)
+
+    #=
+    @testset "WindowMPS TDVP" begin
+        ψwindow, envs = timestep(Ψwindow₀, H, dt, TDVP())
+        E = expectation_value(ψ, H, envs)
+        @test sum(E₀) ≈ sum(E) atol = 1e-2
+    end
+    =#
 end
 
 @testset "leading_boundary" verbose = true begin
@@ -447,15 +567,13 @@ end
         #random nn interaction
         nn = TensorMap(rand, ComplexF64, pspace * pspace, pspace * pspace)
         nn += nn'
-        H = MPOHamiltonian(nn)
-        Δt = 0.1
-        expH = make_time_mpo(H, Δt, WII())
 
-        O = convert(DenseMPO, expH)
-        Op = periodic_boundary_conditions(O, 10)
-        Op′ = changebonds(Op, SvdCut(; trscheme=truncdim(5)))
+        mpo1 = periodic_boundary_conditions(convert(DenseMPO,
+                                                    make_time_mpo(MPOHamiltonian(nn), 0.1,
+                                                                  WII())), 10)
+        mpo2 = changebonds(mpo1, SvdCut(; trscheme=truncdim(5)))
 
-        @test dim(space(Op′[5], 1)) < dim(space(Op[5], 1))
+        @test dim(space(mpo2[5], 1)) < dim(space(mpo1[5], 1))
     end
 
     @testset "infinite mps" begin
@@ -532,13 +650,14 @@ end
 @testset "Dynamical DMRG" verbose = true begin
     ham = force_planar(-1.0 * transverse_field_ising(; g=-4.0))
     gs, = find_groundstate(InfiniteMPS([ℙ^2], [ℙ^10]), ham, VUMPS(; verbosity=0))
-    window = WindowMPS(gs, copy.([gs.AC[1]; [gs.AR[i] for i in 2:10]]), gs)
+    window = WindowMPS(gs, copy.([gs.AC[1]; [gs.AR[i] for i in 2:10]]), gs; fixleft=true,
+                       fixright=true)
 
     szd = force_planar(TensorMap(ComplexF64[0.5 0; 0 -0.5], ℂ^2 ← ℂ^2))
     @test expectation_value(gs, szd)[1] ≈ expectation_value(window, szd)[1] atol = 1e-10
 
     polepos = expectation_value(gs, ham, 10)
-    @test polepos ≈ expectation_value(window, ham)[2]
+    @test polepos ≈ expectation_value(window, ham, 1:length(window))
 
     vals = (-0.5:0.2:0.5) .+ polepos
     eta = 0.3im
